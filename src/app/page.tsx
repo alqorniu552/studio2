@@ -18,14 +18,12 @@ import { ContainerClient } from "@/components/container-client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InstallDockerClient } from "@/components/install-docker-client";
 
-// This is a placeholder for the host server's public IP address.
-// In a real application, this would come from environment variables or a configuration file.
-const HOST_IP = "AAA.BBB.CCC.DDD";
-
 export default async function Home() {
   let containers: any[] = [];
   let connectionError: string | null = null;
   let isDockerMissing = false;
+
+  const hostIp = process.env.SSH_HOST || "your_vps_ip";
 
   try {
     containers = await getContainers();
@@ -133,7 +131,7 @@ export default async function Home() {
               {isDockerMissing && <InstallDockerClient />}
             </Alert>
           ) : (
-            <ContainerClient initialContainers={containers} hostIp={HOST_IP} />
+            <ContainerClient initialContainers={containers} hostIp={hostIp} />
           )}
         </main>
       </SidebarInset>
