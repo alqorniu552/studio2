@@ -23,7 +23,7 @@ export default async function Home() {
   let connectionError: string | null = null;
   let isDockerMissing = false;
 
-  const hostIp = "66.179.191.200";
+  const hostIp = process.env.SSH_HOST || "";
 
   try {
     containers = await getContainers();
