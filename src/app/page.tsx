@@ -17,9 +17,10 @@ import { getContainers } from "@/app/actions";
 import { ContainerClient } from "@/components/container-client";
 import { InstallDockerClient } from "@/components/install-docker-client";
 import { ConnectionError } from "@/components/connection-error";
+import { type Container as ContainerType } from "@/lib/types";
 
 export default async function Home() {
-  let containers: any[] = [];
+  let containers: ContainerType[] = [];
   let connectionError: string | null = null;
   let isDockerMissing = false;
 
