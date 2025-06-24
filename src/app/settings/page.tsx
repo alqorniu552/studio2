@@ -12,30 +12,12 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy, Terminal } from "lucide-react";
-import { getContainers } from "@/app/actions";
-import { ContainerClient } from "@/components/container-client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InstallDockerClient } from "@/components/install-docker-client";
+import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
-// This is a placeholder for the host server's public IP address.
-// In a real application, this would come from environment variables or a configuration file.
-const HOST_IP = "AAA.BBB.CCC.DDD";
-
-export default async function Home() {
-  let containers: any[] = [];
-  let connectionError: string | null = null;
-  let isDockerMissing = false;
-
-  try {
-    containers = await getContainers();
-  } catch (error: any) {
-    connectionError = error.message;
-    if (connectionError?.includes("Docker is not installed")) {
-      isDockerMissing = true;
-    }
-  }
-
+export default async function SettingsPage() {
   return (
     <SidebarProvider>
       <Sidebar>
@@ -53,7 +35,7 @@ export default async function Home() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton isActive tooltip="Dashboard">
+                <SidebarMenuButton tooltip="Dashboard">
                   <LayoutDashboard />
                   <span className="font-headline">Dashboard</span>
                 </SidebarMenuButton>
@@ -69,7 +51,7 @@ export default async function Home() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/settings">
-                <SidebarMenuButton tooltip="Settings">
+                <SidebarMenuButton isActive tooltip="Settings">
                   <Settings />
                   <span className="font-headline">Settings</span>
                 </SidebarMenuButton>
@@ -103,32 +85,38 @@ export default async function Home() {
             <SidebarTrigger />
           </div>
           <h1 className="text-2xl font-bold font-headline text-foreground hidden md:block">
-            VPS Client Manager
+            Settings
           </h1>
           <div className="flex-1" />
            {/* Placeholder for future header actions */}
         </header>
         <main className="p-4 sm:p-6 lg:p-8">
-          {connectionError ? (
-             <Alert variant="destructive">
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Connection Error</AlertTitle>
-              <AlertDescription>
-                <p className="font-semibold">{connectionError}</p>
-                {!isDockerMissing && (
-                  <>
-                    <p className="mt-2 text-sm">Please create a <code>.env.local</code> file in the project's root directory and add your SSH connection details. The server needs to be restarted after creating the file.</p>
-                    <pre className="mt-4 p-3 bg-slate-900/90 text-slate-100 rounded-md text-xs whitespace-pre-wrap font-code">
-                      {`# .env.local Example\n\nSSH_HOST=your_vps_ip_address\nSSH_USERNAME=your_ssh_username\n# Use either password OR private key path\nSSH_PASSWORD=your_ssh_password\n# SSH_PRIVATE_KEY_PATH=/path/to/your/id_rsa`}
-                    </pre>
-                  </>
-                )}
-              </AlertDescription>
-              {isDockerMissing && <InstallDockerClient />}
-            </Alert>
-          ) : (
-            <ContainerClient initialContainers={containers} hostIp={HOST_IP} />
-          )}
+            <Card className="max-w-2xl">
+                <CardHeader>
+                    <CardTitle>Application Settings</CardTitle>
+                    <CardDescription>Manage your application preferences here.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-6">
+                    <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="dark-mode" className="flex flex-col space-y-1">
+                            <span>Dark Mode</span>
+                            <span className="font-normal leading-snug text-muted-foreground">
+                                Enable or disable dark mode for the application.
+                            </span>
+                        </Label>
+                        <Switch id="dark-mode" disabled />
+                    </div>
+                    <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="notifications" className="flex flex-col space-y-1">
+                            <span>Email Notifications</span>
+                            <span className="font-normal leading-snug text-muted-foreground">
+                                Receive notifications about container status changes.
+                            </span>
+                        </Label>
+                        <Switch id="notifications" disabled />
+                    </div>
+                </CardContent>
+            </Card>
         </main>
       </SidebarInset>
     </SidebarProvider>

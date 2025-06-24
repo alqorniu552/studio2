@@ -66,10 +66,12 @@ export default async function ImagesPage() {
               </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Settings">
-                <Settings />
-                <span className="font-headline">Settings</span>
-              </SidebarMenuButton>
+              <Link href="/settings">
+                <SidebarMenuButton tooltip="Settings">
+                  <Settings />
+                  <span className="font-headline">Settings</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
