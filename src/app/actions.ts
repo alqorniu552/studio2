@@ -10,14 +10,12 @@ const ssh = new NodeSSH();
 async function connectSSH() {
   if (ssh.isConnected()) return;
 
-  const sshConfig = {
-    host: process.env.SSH_HOST,
-    username: process.env.SSH_USERNAME,
-    password: process.env.SSH_PASSWORD,
-    privateKeyPath: process.env.SSH_PRIVATE_KEY_PATH,
-  };
+  const host = process.env.SSH_HOST;
+  const username = process.env.SSH_USERNAME;
+  const password = process.env.SSH_PASSWORD;
+  const privateKeyPath = process.env.SSH_PRIVATE_KEY_PATH;
 
-  if (!sshConfig.host || !sshConfig.username || (!ssh.config.password && !ssh.config.privateKeyPath)) {
+  if (!host || !username || (!password && !privateKeyPath)) {
     const missingEnvMessage = 'Koneksi Gagal: File `.env.local` belum lengkap.\n\n' +
         'Pastikan file `.env.local` ada di direktori utama proyek Anda dan berisi semua detail yang diperlukan, seperti contoh di bawah ini. Ganti nilai placeholder dengan informasi VPS Anda.\n\n' +
         'Contoh Isi File `.env.local`:\n' +
@@ -26,6 +24,23 @@ async function connectSSH() {
         'SSH_PASSWORD=PasswordRahasiaAnda\n\n' +
         'Penting: Setelah membuat atau mengubah file ini, Anda **wajib** me-restart server aplikasi ini (hentikan dengan Ctrl+C, lalu jalankan lagi).';
     throw new Error(missingEnvMessage);
+  }
+
+  const sshConfig: {
+    host: string;
+    username: string;
+    password?: string;
+    privateKeyPath?: string;
+  } = {
+    host,
+    username,
+  };
+
+  if (password) {
+    sshConfig.password = password;
+  }
+  if (privateKeyPath) {
+    sshConfig.privateKeyPath = privateKeyPath;
   }
   
   try {
