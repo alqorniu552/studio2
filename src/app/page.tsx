@@ -27,7 +27,6 @@ export default async function Home() {
   try {
     containers = await getContainers();
   } catch (error: any) {
-    console.error("Failed to fetch containers:", error.message);
     connectionError = error.message;
   }
 
