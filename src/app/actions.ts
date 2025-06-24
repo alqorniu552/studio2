@@ -19,22 +19,27 @@ async function connectSSH() {
   };
 
   if (!sshConfig.host || !sshConfig.username || (!sshConfig.password && !sshConfig.privateKeyPath)) {
-    throw new Error('Detail koneksi SSH tidak ditemukan di file .env.local. Harap atur SSH_HOST, SSH_USERNAME, dan salah satu dari SSH_PASSWORD atau SSH_PRIVATE_KEY_PATH.');
+    const missingEnvMessage = 'Koneksi Gagal: File `.env.local` belum lengkap.\n\n' +
+        'Pastikan file `.env.local` ada di direktori utama proyek Anda dan berisi semua detail yang diperlukan, seperti contoh di bawah ini. Ganti nilai placeholder dengan informasi VPS Anda.\n\n' +
+        'Contoh Isi File `.env.local`:\n' +
+        'SSH_HOST=123.45.67.89\n' +
+        'SSH_USERNAME=root\n' +
+        'SSH_PASSWORD=PasswordRahasiaAnda\n\n' +
+        'Penting: Setelah membuat atau mengubah file ini, Anda **wajib** me-restart server aplikasi ini (hentikan dengan Ctrl+C, lalu jalankan lagi).';
+    throw new Error(missingEnvMessage);
   }
   
   try {
     await ssh.connect(sshConfig);
   } catch (error: any) {
     if (error.message.includes('All configured authentication methods failed')) {
-      const authDebugMessage = 'Otentikasi Gagal. Harap periksa kembali hal-hal berikut:\n\n' +
-        '1. Kredensial:\n' +
-        '   - Pastikan `SSH_USERNAME` dan `SSH_PASSWORD` di file `.env.local` Anda sudah benar (tidak ada salah ketik, perhatikan huruf besar/kecil).\n\n' +
-        '2. Otentikasi Password di VPS:\n' +
-        '   - Pastikan VPS Anda mengizinkan otentikasi via password. Periksa file `/etc/ssh/sshd_config` di VPS dan pastikan ada baris `PasswordAuthentication yes`.\n\n' +
-        '3. Hanya Menggunakan Password?\n' +
-        '   - Jika Anda hanya menggunakan password, pastikan baris `SSH_PRIVATE_KEY_PATH` tidak ada atau sudah diberi komentar (tanda #) di file `.env.local` Anda.\n\n' +
-        '4. Restart Server:\n' +
-        '   - Setelah mengubah file `.env.local`, Anda **wajib** me-restart server aplikasi ini.';
+      const authDebugMessage = 'Otentikasi Gagal. VPS menolak login.\n\n' +
+        'Ini adalah masalah paling umum. Mari kita periksa langkah demi langkah dengan sangat teliti:\n\n' +
+        '1. Pastikan `SSH_USERNAME` dan `SSH_PASSWORD` di file `.env.local` Anda sudah 100% benar. Salah satu huruf atau angka saja akan menyebabkan kegagalan. Cara terbaik adalah menyalin dan menempelkannya langsung dari catatan Anda.\n\n' +
+        '2. Pastikan VPS Anda mengizinkan login dengan password. Masuk ke VPS Anda, edit file `/etc/ssh/sshd_config`, dan pastikan ada baris `PasswordAuthentication yes`. Jika ada tanda `#` di depannya, hapus tanda `#` tersebut.\n\n' +
+        '3. Setelah mengedit file `sshd_config` di VPS, Anda **WAJIB** me-restart layanan SSH dengan perintah `sudo systemctl restart ssh`.\n\n' +
+        '4. Pastikan Anda hanya menggunakan satu metode login. Jika Anda mengisi `SSH_PASSWORD`, pastikan baris `SSH_PRIVATE_KEY_PATH` di file `.env.local` dikosongkan atau diberi komentar (diawali #).\n\n' +
+        '5. Terakhir, setiap kali Anda mengubah file `.env.local`, Anda **WAJIB** me-restart server aplikasi ini di komputer lokal Anda (hentikan dengan Ctrl+C, lalu jalankan lagi).';
       
       throw new Error(authDebugMessage);
     }
