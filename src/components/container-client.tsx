@@ -1,0 +1,162 @@
+"use client";
+
+import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useRef } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { createContainer } from "@/app/actions";
+import { type Container, type CreateActionState } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { DeleteContainerButton } from "./delete-container-button";
+import { Badge } from "@/components/ui/badge";
+import { CircleDot } from "lucide-react";
+
+const initialState: CreateActionState = { error: null, success: false };
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+      {pending ? "Creating..." : "Buat Client"}
+    </Button>
+  );
+}
+
+export function ContainerClient({
+  initialContainers,
+  hostIp,
+}: {
+  initialContainers: Container[];
+  hostIp: string;
+}) {
+  const [state, formAction] = useFormState(createContainer, initialState);
+  const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state.error) {
+      toast({
+        variant: "destructive",
+        title: "Error Creating Client",
+        description: state.error,
+      });
+    }
+    if (state.success) {
+      toast({
+        title: "Success",
+        description: "Client container created successfully.",
+      });
+      formRef.current?.reset();
+    }
+  }, [state, toast]);
+
+  return (
+    <div className="space-y-8">
+      <Card className="shadow-md">
+        <CardHeader>
+          <CardTitle>Buat Client Baru</CardTitle>
+          <CardDescription>
+            Create a new container instance. A unique port will be assigned
+            automatically.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            ref={formRef}
+            action={formAction}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="client_name">Nama Client (tanpa spasi)</Label>
+              <Input
+                id="client_name"
+                name="client_name"
+                required
+                pattern="^\S+$"
+                title="Name cannot contain spaces."
+                placeholder="misal: client-pertama"
+              />
+            </div>
+            <SubmitButton />
+          </form>
+        </CardContent>
+      </Card>
+
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight mb-4 font-headline">
+          Daftar Client Aktif
+        </h2>
+        <Card className="shadow-md">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama Client</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Port Mapping</TableHead>
+                  <TableHead>Cara Akses SSH</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {initialContainers.length > 0 ? (
+                  initialContainers.map((container) => (
+                    <TableRow key={container.id}>
+                      <TableCell className="font-medium">
+                        {container.name}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-300 dark:border-green-700/80">
+                           <CircleDot className="mr-2 h-3 w-3 text-green-600 dark:text-green-400" />
+                          Running
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{container.ports}</TableCell>
+                      <TableCell>
+                        <code className="text-sm bg-muted p-2 rounded-md block whitespace-nowrap">
+                          ssh root@{hostIp} -p {container.sshPort}
+                        </code>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DeleteContainerButton containerId={container.id} />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      No active clients. Create one to get started.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+        <p className="mt-3 text-sm text-muted-foreground">
+          <strong>Note:</strong> Password default tergantung image, misal:
+          'root' atau 'screencast'.
+        </p>
+      </div>
+    </div>
+  );
+}

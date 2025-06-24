@@ -1,3 +1,97 @@
-export default function Home() {
-  return <></>;
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarTrigger,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy } from "lucide-react";
+import { getContainers } from "@/app/actions";
+import { ContainerClient } from "@/components/container-client";
+
+// This is a placeholder for the host server's public IP address.
+// In a real application, this would come from environment variables or a configuration file.
+const HOST_IP = "AAA.BBB.CCC.DDD";
+
+export default async function Home() {
+  const containers = await getContainers();
+
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 p-2">
+            <div className="p-1.5 rounded-lg bg-primary/20">
+              <Rocket className="w-6 h-6 text-primary" />
+            </div>
+            <h1 className="text-xl font-semibold font-headline text-primary-foreground group-data-[collapsible=icon]:hidden">
+              ContainerPilot
+            </h1>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive tooltip="Dashboard">
+                <LayoutDashboard />
+                <span className="font-headline">Dashboard</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Images">
+                <Container />
+                <span className="font-headline">Images</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Settings">
+                <Settings />
+                <span className="font-headline">Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+             <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Support">
+                  <LifeBuoy />
+                  <span className="font-headline">Support</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="User Profile">
+                <Avatar className="size-7">
+                    <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="user avatar" />
+                    <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+                <span className="font-headline">User Profile</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex items-center justify-between p-4 bg-card/80 backdrop-blur-sm border-b sticky top-0 z-10 h-16">
+          <div className="md:hidden">
+            <SidebarTrigger />
+          </div>
+          <h1 className="text-2xl font-bold font-headline text-foreground hidden md:block">
+            VPS Client Manager
+          </h1>
+          <div className="flex-1" />
+           {/* Placeholder for future header actions */}
+        </header>
+        <main className="p-4 sm:p-6 lg:p-8">
+          <ContainerClient initialContainers={containers} hostIp={HOST_IP} />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }
