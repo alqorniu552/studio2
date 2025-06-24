@@ -4,7 +4,6 @@
 import { revalidatePath } from "next/cache";
 import { type Container, type CreateActionState, type Image } from "@/lib/types";
 import { NodeSSH } from "node-ssh";
-import "dotenv/config";
 
 const ssh = new NodeSSH();
 
@@ -172,9 +171,9 @@ export async function deleteContainer(formData: FormData) {
 }
 
 const DOCKER_INSTALL_COMMAND = "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh";
-const ADD_USER_TO_DOCKER_GROUP_COMMAND = `sudo usermod -aG docker ${process.env.SSH_USERNAME}`;
 
 export async function installDocker(prevState: { error?: string | null, success?: boolean }, formData: FormData): Promise<{ error?: string | null, success?: boolean }> {
+  const ADD_USER_TO_DOCKER_GROUP_COMMAND = `sudo usermod -aG docker ${process.env.SSH_USERNAME}`;
   try {
     await connectSSH();
 
