@@ -115,8 +115,14 @@ export default async function ImagesPage() {
                 <p className="font-semibold">{connectionError}</p>
                 {!isDockerMissing && (
                   <>
-                    <p className="mt-2 text-sm">Please create a <code>.env.local</code> file in the project's root directory and add your SSH connection details. The server needs to be restarted after creating the file.</p>
-                    <pre className="mt-4 p-3 bg-slate-900/90 text-slate-100 rounded-md text-xs whitespace-pre-wrap font-code">
+                    <p className="mt-4 text-sm font-bold">Troubleshooting Steps:</p>
+                    <ul className="mt-2 ml-4 list-disc space-y-1 text-sm">
+                      <li>Ensure the details in your <code>.env.local</code> file (host, username, password/key path) are correct.</li>
+                      <li>After creating or modifying the <code>.env.local</code> file, you must restart the application server.</li>
+                      <li>Check if your VPS firewall is blocking the SSH port (usually port 22).</li>
+                    </ul>
+                    <p className="mt-4 text-sm">For reference, here is an example of the <code>.env.local</code> file format:</p>
+                    <pre className="mt-2 p-3 bg-slate-900/90 text-slate-100 rounded-md text-xs whitespace-pre-wrap font-code">
                       {`# .env.local Example\n\nSSH_HOST=your_vps_ip_address\nSSH_USERNAME=your_ssh_username\n# Use either password OR private key path\nSSH_PASSWORD=your_ssh_password\n# SSH_PRIVATE_KEY_PATH=/path/to/your/id_rsa`}
                     </pre>
                   </>
