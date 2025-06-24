@@ -15,6 +15,7 @@ import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy, Terminal } from
 import { getContainers } from "@/app/actions";
 import { ContainerClient } from "@/components/container-client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InstallDockerClient } from "@/components/install-docker-client";
 
 // This is a placeholder for the host server's public IP address.
 // In a real application, this would come from environment variables or a configuration file.
@@ -23,11 +24,15 @@ const HOST_IP = "AAA.BBB.CCC.DDD";
 export default async function Home() {
   let containers: any[] = [];
   let connectionError: string | null = null;
+  let isDockerMissing = false;
 
   try {
     containers = await getContainers();
   } catch (error: any) {
     connectionError = error.message;
+    if (connectionError?.includes("Docker is not installed")) {
+      isDockerMissing = true;
+    }
   }
 
   return (
@@ -103,11 +108,16 @@ export default async function Home() {
               <AlertTitle>Connection Error</AlertTitle>
               <AlertDescription>
                 <p className="font-semibold">{connectionError}</p>
-                <p className="mt-2 text-sm">Please create a <code>.env.local</code> file in the project's root directory and add your SSH connection details. The server needs to be restarted after creating the file.</p>
-                <pre className="mt-4 p-3 bg-slate-900/90 text-slate-100 rounded-md text-xs whitespace-pre-wrap font-code">
-                  {`# .env.local Example\n\nSSH_HOST=your_vps_ip_address\nSSH_USERNAME=your_ssh_username\n# Use either password OR private key path\nSSH_PASSWORD=your_ssh_password\n# SSH_PRIVATE_KEY_PATH=/path/to/your/id_rsa`}
-                </pre>
+                {!isDockerMissing && (
+                  <>
+                    <p className="mt-2 text-sm">Please create a <code>.env.local</code> file in the project's root directory and add your SSH connection details. The server needs to be restarted after creating the file.</p>
+                    <pre className="mt-4 p-3 bg-slate-900/90 text-slate-100 rounded-md text-xs whitespace-pre-wrap font-code">
+                      {`# .env.local Example\n\nSSH_HOST=your_vps_ip_address\nSSH_USERNAME=your_ssh_username\n# Use either password OR private key path\nSSH_PASSWORD=your_ssh_password\n# SSH_PRIVATE_KEY_PATH=/path/to/your/id_rsa`}
+                    </pre>
+                  </>
+                )}
               </AlertDescription>
+              {isDockerMissing && <InstallDockerClient />}
             </Alert>
           ) : (
             <ContainerClient initialContainers={containers} hostIp={HOST_IP} />

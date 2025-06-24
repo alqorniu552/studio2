@@ -39,8 +39,7 @@ export async function getContainers(): Promise<Container[]> {
 
     if (result.code !== 0) {
         const stderr = result.stderr || "Unknown Docker error on the remote server.";
-        console.error('Error fetching containers:', stderr);
-        if (stderr.includes('command not found')) {
+        if (stderr.includes('command not found') || stderr.includes('not found: docker')) {
             throw new Error("Docker is not installed or accessible on the remote server.");
         }
         throw new Error(stderr);
@@ -140,8 +139,6 @@ export async function deleteContainer(formData: FormData) {
         
         if (result.code !== 0 && result.stderr) {
             console.error(`Error deleting container ${containerId}:`, result.stderr);
-            // In a real app, you might want to return an error state instead of throwing.
-            // For now, we just log it.
         }
 
         revalidatePath("/");
@@ -149,4 +146,33 @@ export async function deleteContainer(formData: FormData) {
         console.error("Error deleting container:", e);
         throw new Error("Failed to delete container.");
     }
+}
+
+const DOCKER_INSTALL_COMMAND = "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh";
+const ADD_USER_TO_DOCKER_GROUP_COMMAND = `sudo usermod -aG docker ${process.env.SSH_USERNAME}`;
+
+export async function installDocker(prevState: { error?: string | null, success?: boolean }, formData: FormData): Promise<{ error?: string | null, success?: boolean }> {
+  try {
+    await connectSSH();
+
+    const result = await ssh.execCommand(DOCKER_INSTALL_COMMAND, {
+      execOptions: { pty: true }
+    });
+
+    if (result.code !== 0) {
+      if (result.stderr.includes('sudo: a password is required') || result.stderr.includes('sudo: no tty present')) {
+        return { error: "Installation requires passwordless `sudo` privileges for the SSH user." };
+      }
+      console.error('Docker installation failed:', result.stderr);
+      return { error: `Script failed. Stderr: ${result.stderr}` };
+    }
+    
+    await ssh.execCommand(ADD_USER_TO_DOCKER_GROUP_COMMAND);
+
+    return { success: true };
+
+  } catch (e: any) {
+    console.error("Error installing Docker:", e);
+    return { error: e.message || "An unexpected error occurred during installation." };
+  }
 }
