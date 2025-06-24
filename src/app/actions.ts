@@ -1,3 +1,4 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -33,18 +34,16 @@ function parseSshPort(portString: string): number | null {
 }
 
 export async function getContainers(): Promise<Container[]> {
-  try {
     await connectSSH();
     const result = await ssh.execCommand('docker ps -a --format "{{json .}}"');
 
-    if (result.code !== 0 && result.stderr) {
-        // If the error is "command not found", provide a helpful message.
-        if (result.stderr.includes('command not found')) {
-            console.error("Error fetching containers: 'docker' command not found on the remote server. Please ensure Docker is installed and accessible.");
+    if (result.code !== 0) {
+        const stderr = result.stderr || "Unknown Docker error on the remote server.";
+        console.error('Error fetching containers:', stderr);
+        if (stderr.includes('command not found')) {
             throw new Error("Docker is not installed or accessible on the remote server.");
         }
-        console.error('Error fetching containers:', result.stderr);
-        return [];
+        throw new Error(stderr);
     }
     
     if (!result.stdout) {
@@ -54,7 +53,15 @@ export async function getContainers(): Promise<Container[]> {
     const dockerContainers = result.stdout
       .split('\n')
       .filter(line => line.trim() !== '')
-      .map(line => JSON.parse(line));
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          console.error("Failed to parse Docker output line:", line, e);
+          return null;
+        }
+      })
+      .filter(Boolean);
 
     return dockerContainers.map((c: any): Container => ({
       id: c.ID,
@@ -64,16 +71,8 @@ export async function getContainers(): Promise<Container[]> {
       status: c.State,
       image: c.Image,
     }));
-  } catch (e) {
-    console.error("Failed to get containers:", e);
-    // On failure, re-throw the error to be caught by Next.js error boundaries.
-    // This provides clearer feedback than returning an empty array.
-    if (e instanceof Error) {
-        throw e;
-    }
-    throw new Error("An unknown error occurred while fetching containers.");
-  }
 }
+
 
 async function getNextAvailablePort(): Promise<number> {
     const containers = await getContainers();
