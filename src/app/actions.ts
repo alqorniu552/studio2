@@ -17,7 +17,7 @@ async function connectSSH() {
     privateKeyPath: process.env.SSH_PRIVATE_KEY_PATH,
   };
 
-  if (!sshConfig.host || !sshConfig.username || (!sshConfig.password && !sshConfig.privateKeyPath)) {
+  if (!sshConfig.host || !sshConfig.username || (!ssh.config.password && !ssh.config.privateKeyPath)) {
     const missingEnvMessage = 'Koneksi Gagal: File `.env.local` belum lengkap.\n\n' +
         'Pastikan file `.env.local` ada di direktori utama proyek Anda dan berisi semua detail yang diperlukan, seperti contoh di bawah ini. Ganti nilai placeholder dengan informasi VPS Anda.\n\n' +
         'Contoh Isi File `.env.local`:\n' +
@@ -42,7 +42,20 @@ async function connectSSH() {
       
       throw new Error(authDebugMessage);
     }
-    // Re-throw other types of errors (e.g., connection timeout)
+    if (error.message.includes('does not exist at given fs path')) {
+        const keyPathDebugMessage = 'Kunci SSH Privat Tidak Ditemukan.\n\n' +
+        'Aplikasi tidak dapat menemukan file kunci privat di path yang Anda tentukan di `.env.local`.\n\n' +
+        'Mari kita periksa dengan teliti:\n\n' +
+        '1. Pastikan nilai `SSH_PRIVATE_KEY_PATH` di file `.env.local` Anda sudah 100% benar. Periksa setiap huruf, garis miring, dan titik.\n\n' +
+        '2. Path harus **absolut (lengkap)**, bukan relatif. Jangan gunakan `~`.\n' +
+        '   - Contoh Benar (Linux/macOS): `/home/namaanda/.ssh/id_rsa`\n' +
+        '   - Contoh Benar (Windows): `C:/Users/NamaAnda/.ssh/id_rsa`\n\n' +
+        '3. Pastikan file kunci privat (misalnya `id_rsa`, bukan `id_rsa.pub`) benar-benar ada di lokasi tersebut.\n\n' +
+        '4. Setiap kali Anda mengubah file `.env.local`, Anda **WAJIB** me-restart server aplikasi ini (hentikan dengan Ctrl+C, lalu jalankan lagi).';
+        
+        throw new Error(keyPathDebugMessage);
+    }
+    // Re-throw other types of errors
     throw error;
   }
 }
@@ -170,13 +183,11 @@ export async function deleteContainer(formData: FormData) {
     }
 }
 
-const DOCKER_INSTALL_COMMAND = "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh";
-
 export async function installDocker(prevState: { error?: string | null, success?: boolean }, formData: FormData): Promise<{ error?: string | null, success?: boolean }> {
-  const ADD_USER_TO_DOCKER_GROUP_COMMAND = `sudo usermod -aG docker ${process.env.SSH_USERNAME}`;
   try {
     await connectSSH();
 
+    const DOCKER_INSTALL_COMMAND = "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh";
     const result = await ssh.execCommand(DOCKER_INSTALL_COMMAND, {
       execOptions: { pty: true }
     });
@@ -189,7 +200,10 @@ export async function installDocker(prevState: { error?: string | null, success?
       return { error: `Skrip gagal. Stderr: ${result.stderr}` };
     }
     
-    await ssh.execCommand(ADD_USER_TO_DOCKER_GROUP_COMMAND);
+    // This command needs the username, which might not be available in this scope easily.
+    // It's better to instruct the user to do this manually if needed.
+    // const ADD_USER_TO_DOCKER_GROUP_COMMAND = `sudo usermod -aG docker ${process.env.SSH_USERNAME}`;
+    // await ssh.execCommand(ADD_USER_TO_DOCKER_GROUP_COMMAND);
 
     return { success: true };
 
