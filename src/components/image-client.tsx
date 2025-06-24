@@ -1,11 +1,7 @@
 "use client";
 
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
+  Card
 } from "@/components/ui/card";
 import {
   Table,
@@ -28,19 +24,19 @@ export function ImageClient({
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold tracking-tight mb-4 font-headline">
-          Docker Images
+          Image Docker
         </h2>
         <Card className="shadow-md">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Repository</TableHead>
+                  <TableHead>Repositori</TableHead>
                   <TableHead>Tag</TableHead>
-                  <TableHead>Image ID</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>ID Image</TableHead>
+                  <TableHead>Dibuat</TableHead>
+                  <TableHead>Ukuran</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -67,7 +63,7 @@ export function ImageClient({
                       colSpan={6}
                       className="h-24 text-center text-muted-foreground"
                     >
-                      No images found on the server.
+                      Tidak ada image yang ditemukan di server.
                     </TableCell>
                   </TableRow>
                 )}

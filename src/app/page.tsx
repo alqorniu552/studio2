@@ -12,11 +12,11 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy, Terminal } from "lucide-react";
+import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy } from "lucide-react";
 import { getContainers } from "@/app/actions";
 import { ContainerClient } from "@/components/container-client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InstallDockerClient } from "@/components/install-docker-client";
+import { ConnectionError } from "@/components/connection-error";
 
 export default async function Home() {
   let containers: any[] = [];
@@ -29,7 +29,7 @@ export default async function Home() {
     containers = await getContainers();
   } catch (error: any) {
     connectionError = error.message;
-    if (connectionError?.includes("Docker is not installed")) {
+    if (connectionError?.includes("Docker tidak terinstal")) {
       isDockerMissing = true;
     }
   }
@@ -51,9 +51,9 @@ export default async function Home() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton isActive tooltip="Dashboard">
+                <SidebarMenuButton isActive tooltip="Dasbor">
                   <LayoutDashboard />
-                  <span className="font-headline">Dashboard</span>
+                  <span className="font-headline">Dasbor</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -67,9 +67,9 @@ export default async function Home() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/settings">
-                <SidebarMenuButton tooltip="Settings">
+                <SidebarMenuButton tooltip="Pengaturan">
                   <Settings />
-                  <span className="font-headline">Settings</span>
+                  <span className="font-headline">Pengaturan</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -78,18 +78,18 @@ export default async function Home() {
         <SidebarFooter>
           <SidebarMenu>
              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Support">
+                <SidebarMenuButton tooltip="Bantuan">
                   <LifeBuoy />
-                  <span className="font-headline">Support</span>
+                  <span className="font-headline">Bantuan</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="User Profile">
+              <SidebarMenuButton tooltip="Profil Pengguna">
                 <Avatar className="size-7">
                     <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="user avatar" />
                     <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <span className="font-headline">User Profile</span>
+                <span className="font-headline">Profil Pengguna</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -101,21 +101,17 @@ export default async function Home() {
             <SidebarTrigger />
           </div>
           <h1 className="text-2xl font-bold font-headline text-foreground hidden md:block">
-            VPS Client Manager
+            Manajer Klien VPS
           </h1>
           <div className="flex-1" />
            {/* Placeholder for future header actions */}
         </header>
         <main className="p-4 sm:p-6 lg:p-8">
           {connectionError ? (
-             <Alert variant="destructive">
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Connection Error</AlertTitle>
-              <AlertDescription>
-                <pre className="text-xs whitespace-pre-wrap font-sans">{connectionError}</pre>
-              </AlertDescription>
+            <div>
+              <ConnectionError message={connectionError} />
               {isDockerMissing && <InstallDockerClient />}
-            </Alert>
+            </div>
           ) : (
             <ContainerClient initialContainers={containers} hostIp={hostIp} />
           )}

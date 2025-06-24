@@ -19,22 +19,22 @@ async function connectSSH() {
   };
 
   if (!sshConfig.host || !sshConfig.username || (!sshConfig.password && !sshConfig.privateKeyPath)) {
-    throw new Error('Missing SSH connection details in .env.local file. Please set SSH_HOST, SSH_USERNAME, and either SSH_PASSWORD or SSH_PRIVATE_KEY_PATH.');
+    throw new Error('Detail koneksi SSH tidak ditemukan di file .env.local. Harap atur SSH_HOST, SSH_USERNAME, dan salah satu dari SSH_PASSWORD atau SSH_PRIVATE_KEY_PATH.');
   }
   
   try {
     await ssh.connect(sshConfig);
   } catch (error: any) {
     if (error.message.includes('All configured authentication methods failed')) {
-      const authDebugMessage = 'Authentication failed. Please carefully check the following:\n\n' +
-        '1. Credentials:\n' +
-        '   - Ensure `SSH_USERNAME` and `SSH_PASSWORD` in your `.env.local` file are exactly correct (no typos, case-sensitive).\n\n' +
-        '2. Password Authentication on VPS:\n' +
-        '   - Confirm your VPS allows password authentication. You may need to check the `/etc/ssh/sshd_config` file on your VPS for `PasswordAuthentication yes`.\n\n' +
-        '3. Using Password Only?\n' +
-        '   - If you are using a password, make sure the `SSH_PRIVATE_KEY_PATH` line is either removed or commented out in your `.env.local` file.\n\n' +
+      const authDebugMessage = 'Otentikasi Gagal. Harap periksa kembali hal-hal berikut:\n\n' +
+        '1. Kredensial:\n' +
+        '   - Pastikan `SSH_USERNAME` dan `SSH_PASSWORD` di file `.env.local` Anda sudah benar (tidak ada salah ketik, perhatikan huruf besar/kecil).\n\n' +
+        '2. Otentikasi Password di VPS:\n' +
+        '   - Pastikan VPS Anda mengizinkan otentikasi via password. Periksa file `/etc/ssh/sshd_config` di VPS dan pastikan ada baris `PasswordAuthentication yes`.\n\n' +
+        '3. Hanya Menggunakan Password?\n' +
+        '   - Jika Anda hanya menggunakan password, pastikan baris `SSH_PRIVATE_KEY_PATH` tidak ada atau sudah diberi komentar (tanda #) di file `.env.local` Anda.\n\n' +
         '4. Restart Server:\n' +
-        '   - After any change to `.env.local`, you MUST restart the application server.';
+        '   - Setelah mengubah file `.env.local`, Anda **wajib** me-restart server aplikasi ini.';
       
       throw new Error(authDebugMessage);
     }
@@ -58,7 +58,7 @@ export async function getContainers(): Promise<Container[]> {
     if (result.code !== 0) {
         const stderr = result.stderr || "Unknown Docker error on the remote server.";
         if (stderr.includes('command not found') || stderr.includes('not found: docker')) {
-            throw new Error("Docker is not installed or accessible on the remote server.");
+            throw new Error("Docker tidak terinstal atau tidak dapat diakses di server remote.");
         }
         throw new Error(stderr);
     }
@@ -109,17 +109,17 @@ export async function createContainer(prevState: CreateActionState, formData: Fo
   const clientName = formData.get("client_name") as string;
 
   if (!clientName || clientName.trim().length === 0) {
-    return { error: "Client name cannot be empty." };
+    return { error: "Nama klien tidak boleh kosong." };
   }
   
   if (/\s/.test(clientName)) {
-    return { error: "Client name cannot contain spaces." };
+    return { error: "Nama klien tidak boleh mengandung spasi." };
   }
 
   try {
     const existingContainers = await getContainers();
     if (existingContainers.some(c => c.name === clientName)) {
-      return { error: `A container with the name "${clientName}" already exists.` };
+      return { error: `Kontainer dengan nama "${clientName}" sudah ada.` };
     }
 
     const sshPort = await getNextAvailablePort();
@@ -130,16 +130,16 @@ export async function createContainer(prevState: CreateActionState, formData: Fo
     const result = await ssh.execCommand(command);
 
     if (result.code !== 0 || result.stderr) {
-        console.error('Error creating container:', result.stderr);
-        return { error: `Failed to create container: ${result.stderr}` };
+        console.error('Gagal membuat kontainer:', result.stderr);
+        return { error: `Gagal membuat kontainer: ${result.stderr}` };
     }
 
     revalidatePath("/");
     return { success: true };
 
   } catch (e: any) {
-    console.error("Error creating container:", e);
-    return { error: e.message || "An unexpected error occurred while creating the container." };
+    console.error("Gagal membuat kontainer:", e);
+    return { error: e.message || "Terjadi kesalahan tak terduga saat membuat kontainer." };
   }
 }
 
@@ -147,7 +147,7 @@ export async function deleteContainer(formData: FormData) {
     const containerId = formData.get('containerId') as string;
 
     if(!containerId) {
-        throw new Error("Container ID is required.");
+        throw new Error("ID Kontainer dibutuhkan.");
     }
 
     try {
@@ -156,13 +156,13 @@ export async function deleteContainer(formData: FormData) {
         const result = await ssh.execCommand(command);
         
         if (result.code !== 0 && result.stderr) {
-            console.error(`Error deleting container ${containerId}:`, result.stderr);
+            console.error(`Gagal menghapus kontainer ${containerId}:`, result.stderr);
         }
 
         revalidatePath("/");
     } catch (e) {
-        console.error("Error deleting container:", e);
-        throw new Error("Failed to delete container.");
+        console.error("Gagal menghapus kontainer:", e);
+        throw new Error("Gagal menghapus kontainer.");
     }
 }
 
@@ -179,10 +179,10 @@ export async function installDocker(prevState: { error?: string | null, success?
 
     if (result.code !== 0) {
       if (result.stderr.includes('sudo: a password is required') || result.stderr.includes('sudo: no tty present')) {
-        return { error: "Installation requires passwordless `sudo` privileges for the SSH user." };
+        return { error: "Instalasi memerlukan hak akses `sudo` tanpa kata sandi untuk pengguna SSH." };
       }
-      console.error('Docker installation failed:', result.stderr);
-      return { error: `Script failed. Stderr: ${result.stderr}` };
+      console.error('Instalasi Docker gagal:', result.stderr);
+      return { error: `Skrip gagal. Stderr: ${result.stderr}` };
     }
     
     await ssh.execCommand(ADD_USER_TO_DOCKER_GROUP_COMMAND);
@@ -190,8 +190,8 @@ export async function installDocker(prevState: { error?: string | null, success?
     return { success: true };
 
   } catch (e: any) {
-    console.error("Error installing Docker:", e);
-    return { error: e.message || "An unexpected error occurred during installation." };
+    console.error("Gagal menginstal Docker:", e);
+    return { error: e.message || "Terjadi kesalahan tak terduga saat instalasi." };
   }
 }
 
@@ -202,7 +202,7 @@ export async function getImages(): Promise<Image[]> {
     if (result.code !== 0) {
         const stderr = result.stderr || "Unknown Docker error on the remote server.";
         if (stderr.includes('command not found') || stderr.includes('not found: docker')) {
-            throw new Error("Docker is not installed or accessible on the remote server.");
+            throw new Error("Docker tidak terinstal atau tidak dapat diakses di server remote.");
         }
         throw new Error(stderr);
     }
@@ -218,7 +218,7 @@ export async function getImages(): Promise<Image[]> {
         try {
           return JSON.parse(line);
         } catch (e) {
-          console.error("Failed to parse Docker image output line:", line, e);
+          console.error("Gagal mem-parsing output image Docker:", line, e);
           return null;
         }
       })
@@ -237,7 +237,7 @@ export async function deleteImage(formData: FormData) {
     const imageId = formData.get('imageId') as string;
 
     if(!imageId) {
-        throw new Error("Image ID is required.");
+        throw new Error("ID Image dibutuhkan.");
     }
 
     try {
@@ -246,12 +246,12 @@ export async function deleteImage(formData: FormData) {
         const result = await ssh.execCommand(command);
 
         if (result.code !== 0 && result.stderr) {
-            console.error(`Error deleting image ${imageId}:`, result.stderr);
+            console.error(`Gagal menghapus image ${imageId}:`, result.stderr);
         }
 
         revalidatePath("/images");
     } catch (e) {
-        console.error("Error deleting image:", e);
-        throw new Error("Failed to delete image.");
+        console.error("Gagal menghapus image:", e);
+        throw new Error("Gagal menghapus image.");
     }
 }

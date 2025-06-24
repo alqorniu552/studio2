@@ -35,9 +35,9 @@ export default async function SettingsPage() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton tooltip="Dashboard">
+                <SidebarMenuButton tooltip="Dasbor">
                   <LayoutDashboard />
-                  <span className="font-headline">Dashboard</span>
+                  <span className="font-headline">Dasbor</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -51,9 +51,9 @@ export default async function SettingsPage() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/settings">
-                <SidebarMenuButton isActive tooltip="Settings">
+                <SidebarMenuButton isActive tooltip="Pengaturan">
                   <Settings />
-                  <span className="font-headline">Settings</span>
+                  <span className="font-headline">Pengaturan</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -62,18 +62,18 @@ export default async function SettingsPage() {
         <SidebarFooter>
           <SidebarMenu>
              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Support">
+                <SidebarMenuButton tooltip="Bantuan">
                   <LifeBuoy />
-                  <span className="font-headline">Support</span>
+                  <span className="font-headline">Bantuan</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="User Profile">
+              <SidebarMenuButton tooltip="Profil Pengguna">
                 <Avatar className="size-7">
                     <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="user avatar" />
                     <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <span className="font-headline">User Profile</span>
+                <span className="font-headline">Profil Pengguna</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -85,7 +85,7 @@ export default async function SettingsPage() {
             <SidebarTrigger />
           </div>
           <h1 className="text-2xl font-bold font-headline text-foreground hidden md:block">
-            Settings
+            Pengaturan
           </h1>
           <div className="flex-1" />
            {/* Placeholder for future header actions */}
@@ -93,24 +93,24 @@ export default async function SettingsPage() {
         <main className="p-4 sm:p-6 lg:p-8">
             <Card className="max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Application Settings</CardTitle>
-                    <CardDescription>Manage your application preferences here.</CardDescription>
+                    <CardTitle>Pengaturan Aplikasi</CardTitle>
+                    <CardDescription>Kelola preferensi aplikasi Anda di sini.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-6">
                     <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="dark-mode" className="flex flex-col space-y-1">
-                            <span>Dark Mode</span>
+                            <span>Mode Gelap</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                                Enable or disable dark mode for the application.
+                                Aktifkan atau nonaktifkan mode gelap untuk aplikasi.
                             </span>
                         </Label>
                         <Switch id="dark-mode" disabled />
                     </div>
                     <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="notifications" className="flex flex-col space-y-1">
-                            <span>Email Notifications</span>
+                            <span>Notifikasi Email</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                                Receive notifications about container status changes.
+                                Terima notifikasi tentang perubahan status kontainer.
                             </span>
                         </Label>
                         <Switch id="notifications" disabled />

@@ -21,7 +21,7 @@ function DeleteSubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="destructive" disabled={pending}>
-      {pending ? "Deleting..." : "Delete"}
+      {pending ? "Menghapus..." : "Hapus"}
     </Button>
   );
 }
@@ -38,21 +38,20 @@ export function DeleteImageButton({
       <AlertDialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-          <span className="sr-only">Delete Image</span>
+          <span className="sr-only">Hapus Image</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <form action={deleteImage}>
             <input type="hidden" name="imageId" value={imageId} />
             <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Apakah Anda benar-benar yakin?</AlertDialogTitle>
             <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                Docker image from your server.
+                Aksi ini tidak dapat dibatalkan. Ini akan menghapus image Docker ini secara permanen dari server Anda.
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction asChild>
                 <DeleteSubmitButton />
             </AlertDialogAction>

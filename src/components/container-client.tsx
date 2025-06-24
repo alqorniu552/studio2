@@ -34,7 +34,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? "Creating..." : "Buat Client"}
+      {pending ? "Membuat..." : "Buat Klien"}
     </Button>
   );
 }
@@ -77,14 +77,14 @@ export function ContainerClient({
     if (state.error) {
       toast({
         variant: "destructive",
-        title: "Error Creating Client",
+        title: "Gagal Membuat Klien",
         description: state.error,
       });
     }
     if (state.success) {
       toast({
-        title: "Success",
-        description: "Client container created successfully.",
+        title: "Berhasil",
+        description: "Kontainer klien berhasil dibuat.",
       });
       formRef.current?.reset();
     }
@@ -94,10 +94,9 @@ export function ContainerClient({
     <div className="space-y-8">
       <Card className="shadow-md">
         <CardHeader>
-          <CardTitle>Buat Client Baru</CardTitle>
+          <CardTitle>Buat Klien Baru</CardTitle>
           <CardDescription>
-            Create a new container instance. A unique port will be assigned
-            automatically.
+            Buat instance kontainer baru. Port unik akan dialokasikan secara otomatis.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,14 +106,14 @@ export function ContainerClient({
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="client_name">Nama Client (tanpa spasi)</Label>
+              <Label htmlFor="client_name">Nama Klien (tanpa spasi)</Label>
               <Input
                 id="client_name"
                 name="client_name"
                 required
                 pattern="^\S+$"
-                title="Name cannot contain spaces."
-                placeholder="misal: client-pertama"
+                title="Nama tidak boleh mengandung spasi."
+                placeholder="misal: klien-pertama"
               />
             </div>
             <SubmitButton />
@@ -124,18 +123,18 @@ export function ContainerClient({
 
       <div>
         <h2 className="text-3xl font-bold tracking-tight mb-4 font-headline">
-          Daftar Client Aktif
+          Daftar Klien Aktif
         </h2>
         <Card className="shadow-md">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama Client</TableHead>
+                  <TableHead>Nama Klien</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Port Mapping</TableHead>
                   <TableHead>Cara Akses SSH</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -165,7 +164,7 @@ export function ContainerClient({
                       colSpan={5}
                       className="h-24 text-center text-muted-foreground"
                     >
-                      No active clients. Create one to get started.
+                      Belum ada klien aktif. Buat satu untuk memulai.
                     </TableCell>
                   </TableRow>
                 )}
@@ -174,8 +173,7 @@ export function ContainerClient({
           </div>
         </Card>
         <p className="mt-3 text-sm text-muted-foreground">
-          <strong>Note:</strong> Password default tergantung image, misal:
-          'root' atau 'screencast'.
+          <strong>Catatan:</strong> Password default tergantung pada image yang digunakan, misal: 'root' atau 'screencast'.
         </p>
       </div>
     </div>

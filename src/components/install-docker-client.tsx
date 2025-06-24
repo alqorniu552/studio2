@@ -15,10 +15,10 @@ function InstallButton() {
             {pending ? (
                 <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Installing Docker...
+                    Menginstal Docker...
                 </>
             ) : (
-                "Install Docker via SSH"
+                "Instal Docker via SSH"
             )}
         </Button>
     );
@@ -40,9 +40,9 @@ export function InstallDockerClient() {
         return (
              <Alert variant="default" className="mt-4">
                 <Terminal className="h-4 w-4" />
-                <AlertTitle>Installation Successful!</AlertTitle>
+                <AlertTitle>Instalasi Berhasil!</AlertTitle>
                 <AlertDescription>
-                    Docker has been installed. The page will reload automatically in 3 seconds.
+                    Docker telah berhasil diinstal. Halaman akan dimuat ulang dalam 3 detik.
                 </AlertDescription>
             </Alert>
         );
@@ -50,8 +50,8 @@ export function InstallDockerClient() {
 
     return (
         <div className="mt-4 pt-4 border-t border-destructive/30">
-            <p className="text-sm font-semibold">You can attempt to install it automatically.</p>
-            <p className="text-xs mt-1">Note: This requires the SSH user to have passwordless <code>sudo</code> permissions.</p>
+            <p className="text-sm font-semibold">Anda dapat mencoba menginstalnya secara otomatis.</p>
+            <p className="text-xs mt-1">Catatan: Ini memerlukan pengguna SSH untuk memiliki izin `sudo` tanpa kata sandi.</p>
 
             <form action={formAction}>
                 <InstallButton />
@@ -59,7 +59,7 @@ export function InstallDockerClient() {
              {state.error && (
                  <Alert variant="destructive" className="mt-4">
                     <ServerCrash className="h-4 w-4" />
-                    <AlertTitle>Installation Failed</AlertTitle>
+                    <AlertTitle>Instalasi Gagal</AlertTitle>
                     <AlertDescription>
                         {state.error}
                     </AlertDescription>
