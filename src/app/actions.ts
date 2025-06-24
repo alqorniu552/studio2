@@ -22,7 +22,25 @@ async function connectSSH() {
     throw new Error('Missing SSH connection details in .env.local file. Please set SSH_HOST, SSH_USERNAME, and either SSH_PASSWORD or SSH_PRIVATE_KEY_PATH.');
   }
   
-  await ssh.connect(sshConfig);
+  try {
+    await ssh.connect(sshConfig);
+  } catch (error: any) {
+    if (error.message.includes('All configured authentication methods failed')) {
+      const authDebugMessage = 'Authentication failed. Please carefully check the following:\n\n' +
+        '1. Credentials:\n' +
+        '   - Ensure `SSH_USERNAME` and `SSH_PASSWORD` in your `.env.local` file are exactly correct (no typos, case-sensitive).\n\n' +
+        '2. Password Authentication on VPS:\n' +
+        '   - Confirm your VPS allows password authentication. You may need to check the `/etc/ssh/sshd_config` file on your VPS for `PasswordAuthentication yes`.\n\n' +
+        '3. Using Password Only?\n' +
+        '   - If you are using a password, make sure the `SSH_PRIVATE_KEY_PATH` line is either removed or commented out in your `.env.local` file.\n\n' +
+        '4. Restart Server:\n' +
+        '   - After any change to `.env.local`, you MUST restart the application server.';
+      
+      throw new Error(authDebugMessage);
+    }
+    // Re-throw other types of errors (e.g., connection timeout)
+    throw error;
+  }
 }
 
 const BASE_SSH_PORT = 2200;
