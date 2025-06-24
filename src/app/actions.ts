@@ -4,6 +4,9 @@
 import { revalidatePath } from "next/cache";
 import { type Container, type CreateActionState, type Image } from "@/lib/types";
 import { NodeSSH } from "node-ssh";
+import { promises as fs } from 'fs';
+import os from 'os';
+import path from 'path';
 
 const ssh = new NodeSSH();
 
@@ -13,7 +16,7 @@ async function connectSSH() {
   const host = process.env.SSH_HOST;
   const username = process.env.SSH_USERNAME;
   const password = process.env.SSH_PASSWORD;
-  const privateKeyPath = process.env.SSH_PRIVATE_KEY_PATH;
+  let privateKeyPath = process.env.SSH_PRIVATE_KEY_PATH;
 
   if (!host || !username || (!password && !privateKeyPath)) {
     const missingEnvMessage = 'Koneksi Gagal: File `.env.local` belum lengkap.\n\n' +
@@ -25,6 +28,33 @@ async function connectSSH() {
         'Penting: Setelah membuat atau mengubah file ini, Anda **wajib** me-restart server aplikasi ini (hentikan dengan Ctrl+C, lalu jalankan lagi).';
     throw new Error(missingEnvMessage);
   }
+
+  // Proactively check private key path if provided
+  if (privateKeyPath) {
+    // Expand tilde (~) to home directory
+    if (privateKeyPath.startsWith('~' + path.sep)) {
+      privateKeyPath = path.join(os.homedir(), privateKeyPath.slice(1));
+    }
+
+    try {
+      // Check if file exists and is accessible
+      await fs.access(privateKeyPath);
+    } catch (e) {
+        const keyPathDebugMessage = 'Kunci SSH Privat Tidak Ditemukan atau Tidak Dapat Diakses.\n\n' +
+        'Aplikasi gagal membaca file kunci di path yang Anda tentukan.\n\n' +
+        `Path yang dicoba: ${privateKeyPath}` + '\n\n' +
+        'Mari kita periksa dengan teliti:\n\n' +
+        '1. **Pastikan Path Sudah Benar.** Apakah path di atas sudah 100% benar? Periksa setiap huruf, garis miring, dan titik.\n\n' +
+        '2. **Gunakan Path Absolut.** Path harus lengkap dari direktori root. Contoh Benar:\n' +
+        '   - Linux/macOS: `/home/namaanda/.ssh/id_rsa`\n' +
+        '   - Windows: `C:/Users/NamaAnda/.ssh/id_rsa`\n\n' +
+        '3. **Periksa Nama File.** Pastikan Anda menunjuk ke file kunci **privat** (misalnya `id_rsa`), bukan kunci publik (`id_rsa.pub`).\n\n' +
+        '4. **Periksa Izin Akses.** Pastikan pengguna yang menjalankan aplikasi ini memiliki izin untuk membaca file kunci tersebut.';
+        
+        throw new Error(keyPathDebugMessage);
+    }
+  }
+
 
   const sshConfig: {
     host: string;
@@ -49,26 +79,13 @@ async function connectSSH() {
     if (error.message.includes('All configured authentication methods failed')) {
       const authDebugMessage = 'Otentikasi Gagal. VPS menolak login.\n\n' +
         'Ini adalah masalah paling umum. Mari kita periksa langkah demi langkah dengan sangat teliti:\n\n' +
-        '1. Pastikan `SSH_USERNAME` dan `SSH_PASSWORD` di file `.env.local` Anda sudah 100% benar. Salah satu huruf atau angka saja akan menyebabkan kegagalan. Cara terbaik adalah menyalin dan menempelkannya langsung dari catatan Anda.\n\n' +
-        '2. Pastikan VPS Anda mengizinkan login dengan password. Masuk ke VPS Anda, edit file `/etc/ssh/sshd_config`, dan pastikan ada baris `PasswordAuthentication yes`. Jika ada tanda `#` di depannya, hapus tanda `#` tersebut.\n\n' +
-        '3. Setelah mengedit file `sshd_config` di VPS, Anda **WAJIB** me-restart layanan SSH dengan perintah `sudo systemctl restart ssh`.\n\n' +
-        '4. Pastikan Anda hanya menggunakan satu metode login. Jika Anda mengisi `SSH_PASSWORD`, pastikan baris `SSH_PRIVATE_KEY_PATH` di file `.env.local` dikosongkan atau diberi komentar (diawali #).\n\n' +
-        '5. Terakhir, setiap kali Anda mengubah file `.env.local`, Anda **WAJIB** me-restart server aplikasi ini di komputer lokal Anda (hentikan dengan Ctrl+C, lalu jalankan lagi).';
+        '1. Pastikan `SSH_USERNAME` dan `SSH_PASSWORD` (jika menggunakan password) di file `.env.local` Anda sudah 100% benar. Cara terbaik adalah menyalin dan menempelkannya langsung.\n\n' +
+        '2. Jika menggunakan password, pastikan VPS Anda mengizinkannya. Edit file `/etc/ssh/sshd_config` di VPS, dan pastikan baris `PasswordAuthentication yes` aktif (tidak ada # di depannya).\n\n' +
+        '3. Jika menggunakan kunci SSH, pastikan kunci publik Anda (isi dari file `.pub\`) sudah ditambahkan ke file `~/.ssh/authorized_keys` di VPS.\n\n' +
+        '4. Setelah mengedit file `sshd_config` atau `authorized_keys` di VPS, Anda **WAJIB** me-restart layanan SSH dengan perintah `sudo systemctl restart ssh`.\n\n' +
+        '5. Setiap kali Anda mengubah file `.env.local`, Anda **WAJIB** me-restart server aplikasi ini (hentikan dengan Ctrl+C, lalu jalankan lagi).';
       
       throw new Error(authDebugMessage);
-    }
-    if (error.message.includes('does not exist at given fs path')) {
-        const keyPathDebugMessage = 'Kunci SSH Privat Tidak Ditemukan.\n\n' +
-        'Aplikasi tidak dapat menemukan file kunci privat di path yang Anda tentukan di `.env.local`.\n\n' +
-        'Mari kita periksa dengan teliti:\n\n' +
-        '1. Pastikan nilai `SSH_PRIVATE_KEY_PATH` di file `.env.local` Anda sudah 100% benar. Periksa setiap huruf, garis miring, dan titik.\n\n' +
-        '2. Path harus **absolut (lengkap)**, bukan relatif. Jangan gunakan `~`.\n' +
-        '   - Contoh Benar (Linux/macOS): `/home/namaanda/.ssh/id_rsa`\n' +
-        '   - Contoh Benar (Windows): `C:/Users/NamaAnda/.ssh/id_rsa`\n\n' +
-        '3. Pastikan file kunci privat (misalnya `id_rsa`, bukan `id_rsa.pub`) benar-benar ada di lokasi tersebut.\n\n' +
-        '4. Setiap kali Anda mengubah file `.env.local`, Anda **WAJIB** me-restart server aplikasi ini (hentikan dengan Ctrl+C, lalu jalankan lagi).';
-        
-        throw new Error(keyPathDebugMessage);
     }
     // Re-throw other types of errors
     throw error;
@@ -215,11 +232,6 @@ export async function installDocker(prevState: { error?: string | null, success?
       return { error: `Skrip gagal. Stderr: ${result.stderr}` };
     }
     
-    // This command needs the username, which might not be available in this scope easily.
-    // It's better to instruct the user to do this manually if needed.
-    // const ADD_USER_TO_DOCKER_GROUP_COMMAND = `sudo usermod -aG docker ${process.env.SSH_USERNAME}`;
-    // await ssh.execCommand(ADD_USER_TO_DOCKER_GROUP_COMMAND);
-
     return { success: true };
 
   } catch (e: any) {
