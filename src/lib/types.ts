@@ -3,7 +3,7 @@ export type Container = {
   name: string;
   ports: string;
   sshPort: number;
-  status: 'running';
+  status: string;
   image: string;
 };
 

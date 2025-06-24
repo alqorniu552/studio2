@@ -25,7 +25,8 @@ import { type Container, type CreateActionState } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteContainerButton } from "./delete-container-button";
 import { Badge } from "@/components/ui/badge";
-import { CircleDot } from "lucide-react";
+import { CircleDot, PowerOff } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const initialState: CreateActionState = { error: null, success: false };
 
@@ -37,6 +38,29 @@ function SubmitButton() {
     </Button>
   );
 }
+
+function StatusBadge({ status }: { status: string }) {
+  const isRunning = status === 'running';
+  const isExited = status === 'exited';
+
+  return (
+    <Badge 
+      variant="secondary" 
+      className={cn(
+        "border",
+        isRunning && "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700/80",
+        isExited && "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700/80",
+        !isRunning && !isExited && "bg-muted text-muted-foreground border-border"
+      )}
+    >
+      {isRunning && <CircleDot className="mr-2 h-3 w-3 text-green-600 dark:text-green-400" />}
+      {isExited && <PowerOff className="mr-2 h-3 w-3 text-red-600 dark:text-red-400" />}
+      {!isRunning && !isExited && <CircleDot className="mr-2 h-3 w-3" />}
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
+}
+
 
 export function ContainerClient({
   initialContainers,
@@ -122,10 +146,7 @@ export function ContainerClient({
                         {container.name}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-300 dark:border-green-700/80">
-                           <CircleDot className="mr-2 h-3 w-3 text-green-600 dark:text-green-400" />
-                          Running
-                        </Badge>
+                        <StatusBadge status={container.status} />
                       </TableCell>
                       <TableCell>{container.ports}</TableCell>
                       <TableCell>

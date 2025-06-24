@@ -11,16 +11,25 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy } from "lucide-react";
+import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy, Terminal } from "lucide-react";
 import { getContainers } from "@/app/actions";
 import { ContainerClient } from "@/components/container-client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // This is a placeholder for the host server's public IP address.
 // In a real application, this would come from environment variables or a configuration file.
 const HOST_IP = "AAA.BBB.CCC.DDD";
 
 export default async function Home() {
-  const containers = await getContainers();
+  let containers: any[] = [];
+  let connectionError: string | null = null;
+
+  try {
+    containers = await getContainers();
+  } catch (error: any) {
+    console.error("Failed to fetch containers:", error.message);
+    connectionError = error.message;
+  }
 
   return (
     <SidebarProvider>
@@ -89,7 +98,21 @@ export default async function Home() {
            {/* Placeholder for future header actions */}
         </header>
         <main className="p-4 sm:p-6 lg:p-8">
-          <ContainerClient initialContainers={containers} hostIp={HOST_IP} />
+          {connectionError ? (
+             <Alert variant="destructive">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>
+                <p className="font-semibold">{connectionError}</p>
+                <p className="mt-2 text-sm">Please create a <code>.env.local</code> file in the project's root directory and add your SSH connection details. The server needs to be restarted after creating the file.</p>
+                <pre className="mt-4 p-3 bg-slate-900/90 text-slate-100 rounded-md text-xs whitespace-pre-wrap font-code">
+                  {`# .env.local Example\n\nSSH_HOST=your_vps_ip_address\nSSH_USERNAME=your_ssh_username\n# Use either password OR private key path\nSSH_PASSWORD=your_ssh_password\n# SSH_PRIVATE_KEY_PATH=/path/to/your/id_rsa`}
+                </pre>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <ContainerClient initialContainers={containers} hostIp={HOST_IP} />
+          )}
         </main>
       </SidebarInset>
     </SidebarProvider>
