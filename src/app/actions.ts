@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { type Container, type CreateActionState } from "@/lib/types";
+import { type Container, type CreateActionState, type Image } from "@/lib/types";
 import { NodeSSH } from "node-ssh";
 import "dotenv/config";
 
@@ -175,4 +175,65 @@ export async function installDocker(prevState: { error?: string | null, success?
     console.error("Error installing Docker:", e);
     return { error: e.message || "An unexpected error occurred during installation." };
   }
+}
+
+export async function getImages(): Promise<Image[]> {
+    await connectSSH();
+    const result = await ssh.execCommand('docker images --format "{{json .}}"');
+
+    if (result.code !== 0) {
+        const stderr = result.stderr || "Unknown Docker error on the remote server.";
+        if (stderr.includes('command not found') || stderr.includes('not found: docker')) {
+            throw new Error("Docker is not installed or accessible on the remote server.");
+        }
+        throw new Error(stderr);
+    }
+
+    if (!result.stdout) {
+      return [];
+    }
+
+    const dockerImages = result.stdout
+      .split('\n')
+      .filter(line => line.trim() !== '')
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          console.error("Failed to parse Docker image output line:", line, e);
+          return null;
+        }
+      })
+      .filter(Boolean);
+
+    return dockerImages.map((img: any): Image => ({
+      id: img.ID,
+      repository: img.Repository,
+      tag: img.Tag,
+      size: img.Size,
+      created: img.CreatedSince,
+    }));
+}
+
+export async function deleteImage(formData: FormData) {
+    const imageId = formData.get('imageId') as string;
+
+    if(!imageId) {
+        throw new Error("Image ID is required.");
+    }
+
+    try {
+        await connectSSH();
+        const command = `docker rmi -f ${imageId}`;
+        const result = await ssh.execCommand(command);
+
+        if (result.code !== 0 && result.stderr) {
+            console.error(`Error deleting image ${imageId}:`, result.stderr);
+        }
+
+        revalidatePath("/images");
+    } catch (e) {
+        console.error("Error deleting image:", e);
+        throw new Error("Failed to delete image.");
+    }
 }

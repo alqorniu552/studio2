@@ -13,22 +13,20 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container, LayoutDashboard, Rocket, Settings, LifeBuoy, Terminal } from "lucide-react";
-import { getContainers } from "@/app/actions";
-import { ContainerClient } from "@/components/container-client";
+import { getImages } from "@/app/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InstallDockerClient } from "@/components/install-docker-client";
+import { ImageClient } from "@/components/image-client";
+import { type Image } from "@/lib/types";
 
-// This is a placeholder for the host server's public IP address.
-// In a real application, this would come from environment variables or a configuration file.
-const HOST_IP = "AAA.BBB.CCC.DDD";
 
-export default async function Home() {
-  let containers: any[] = [];
+export default async function ImagesPage() {
+  let images: Image[] = [];
   let connectionError: string | null = null;
   let isDockerMissing = false;
 
   try {
-    containers = await getContainers();
+    images = await getImages();
   } catch (error: any) {
     connectionError = error.message;
     if (connectionError?.includes("Docker is not installed")) {
@@ -53,7 +51,7 @@ export default async function Home() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton isActive tooltip="Dashboard">
+                <SidebarMenuButton tooltip="Dashboard">
                   <LayoutDashboard />
                   <span className="font-headline">Dashboard</span>
                 </SidebarMenuButton>
@@ -61,7 +59,7 @@ export default async function Home() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/images">
-                <SidebarMenuButton tooltip="Images">
+                <SidebarMenuButton isActive tooltip="Images">
                   <Container />
                   <span className="font-headline">Images</span>
                 </SidebarMenuButton>
@@ -101,7 +99,7 @@ export default async function Home() {
             <SidebarTrigger />
           </div>
           <h1 className="text-2xl font-bold font-headline text-foreground hidden md:block">
-            VPS Client Manager
+            Docker Images
           </h1>
           <div className="flex-1" />
            {/* Placeholder for future header actions */}
@@ -125,7 +123,7 @@ export default async function Home() {
               {isDockerMissing && <InstallDockerClient />}
             </Alert>
           ) : (
-            <ContainerClient initialContainers={containers} hostIp={HOST_IP} />
+            <ImageClient initialImages={images} />
           )}
         </main>
       </SidebarInset>
