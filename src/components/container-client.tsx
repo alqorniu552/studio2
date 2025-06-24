@@ -1,7 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect, useRef } from "react";
+import { useFormStatus } from "react-dom";
+import { useActionState, useEffect, useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -45,7 +45,7 @@ export function ContainerClient({
   initialContainers: Container[];
   hostIp: string;
 }) {
-  const [state, formAction] = useFormState(createContainer, initialState);
+  const [state, formAction] = useActionState(createContainer, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
